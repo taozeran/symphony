@@ -61,26 +61,22 @@ public class SearchQueryService {
         try {
             final JSONObject reqData = new JSONObject();
             final JSONObject q = new JSONObject();
-            final JSONObject and = new JSONObject();
-            q.put("and", and);
-            final JSONArray query = new JSONArray();
-            and.put("query", query);
-            final JSONObject or = new JSONObject();
-            query.put(or);
-            final JSONArray orClause = new JSONArray();
-            or.put("or", orClause);
+            final JSONObject bool = new JSONObject();
+            q.put("bool", bool);
+            final JSONArray should = new JSONArray();
+            bool.put("should", should);
 
             final JSONObject content = new JSONObject();
             content.put(Article.ARTICLE_CONTENT, keyword);
             final JSONObject matchContent = new JSONObject();
             matchContent.put("match", content);
-            orClause.put(matchContent);
+            should.put(matchContent);
 
             final JSONObject title = new JSONObject();
             title.put(Article.ARTICLE_TITLE, keyword);
             final JSONObject matchTitle = new JSONObject();
             matchTitle.put("match", title);
-            orClause.put(matchTitle);
+            should.put(matchTitle);
 
             reqData.put("query", q);
             reqData.put("from", currentPage);
@@ -102,7 +98,7 @@ public class SearchQueryService {
             fields.put(Article.ARTICLE_CONTENT, contentField);
 
             final JSONArray filter = new JSONArray();
-            and.put("filter", filter);
+            bool.put("filter", filter);
             final JSONObject term = new JSONObject();
             filter.put(term);
             final JSONObject field = new JSONObject();
@@ -111,8 +107,9 @@ public class SearchQueryService {
 
             LOGGER.debug(reqData.toString(4));
 
-            final HttpResponse response = HttpRequest.post(SearchMgmtService.ES_SERVER + "/" + SearchMgmtService.ES_INDEX_NAME + "/" + type
-                    + "/_search").bodyText(reqData.toString()).contentTypeJson().timeout(5000).send();
+            HttpRequest re = HttpRequest.post(SearchMgmtService.ES_SERVER + "/" + SearchMgmtService.ES_INDEX_NAME + "/" + type
+                    + "/_search").bodyText(reqData.toString()).contentTypeJson().timeout(5000);
+            final HttpResponse response = re.send();
             response.charset("UTF-8");
             return new JSONObject(response.bodyText());
         } catch (final Exception e) {
